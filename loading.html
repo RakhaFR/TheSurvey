@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Loading...</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      color: white;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-size: cover;
+      background-position: center;
+      overflow: hidden;
+    }
+
+    .blink-text {
+      font-size: 26px;
+      animation: slideIn 1s ease-out, blink 1s infinite, glitch 1s infinite;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+        filter: blur(5px);
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+        filter: blur(0);
+      }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes glitch {
+      0%   { text-shadow: 2px 2px red, -2px -2px blue; }
+      50%  { text-shadow: -2px 2px lime, 2px -2px cyan; }
+      100% { text-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="blink-text">Mengakses Survei...</div>
+
+  <script>
+    // Setelah 4 detik masuk ke game
+    setTimeout(() => {
+      window.location.href = "game.html";
+    }, 4000);
+  </script>
+</body>
+</html>

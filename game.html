@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Survey Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      color: white;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #text-box {
+      font-size: 24px;
+      margin: 20px;
+      white-space: pre-line;
+      min-height: 60px;
+    }
+    .choice-btn {
+      background: none;
+      border: 1px solid white;
+      color: white;
+      font-size: 18px;
+      margin: 10px;
+      padding: 10px 30px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .choice-btn:hover {
+      background-color: red;
+    }
+    #video-container {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 99;
+      background: black;
+    }
+    #glitchVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #startOverlay {
+    flex-direction: column;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+#startBtn {
+  font-size: 14px;
+  background: none;
+  border: 1px solid white;
+  color: white;
+  padding: 20px 40px;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  transition: background 0.3s;
+}
+#startBtn:hover {
+  background: red;
+}
+
+  </style>
+</head>
+  <body>
+
+  <div id="text-box"></div>
+  <div id="button-container"></div>
+
+  <audio id="typeSfx" src="video-game-text.mp3"></audio>
+  <audio id="bgMusic" loop muted>
+    <source src="horror.mp3" type="audio/mpeg">
+  </audio>
+
+  <div id="video-container">
+    <video id="glitchVideo" autoplay>
+      <source src="glitch.mp4" type="video/mp4">
+    </video>
+  </div>
+
+  <div id="startOverlay">
+  <p style="font-size: 18px;">FULL YOUR VOLLUME & SCREEN FOR A BETTER EXPERIENCE. </p>
+  <button id="startBtn">Click anywhere to continue</button>
+</div>
+
+
+<script>
+const textBox = document.getElementById('text-box');
+const buttonContainer = document.getElementById('button-container');
+const videoContainer = document.getElementById('video-container');
+const glitchVideo = document.getElementById('glitchVideo');
+const bgMusic = document.getElementById('bgMusic');
+const typeSfx = document.getElementById('typeSfx');
+let isMusicPlaying = false;
+
+const questions = [
+  // // opening
+  // {
+  //   question: "Mengapa kau mengisi ini?",
+  //   choices: [
+  //     { text: "Aku tidak tahu", response: "Jujur itu awal dari petaka..." },
+  //     { text: "Karena penasaran", response: "Rasa penasaran bisa membunuh, tahu?" },
+  //     { text: "Aku merasa diawasi", response: "Kalau kau tahu kau diawasi, kenapa masih di sini?" }
+  //   ]
+  // },
+  // {
+  //   question: "Apa yang kau cari sebenarnya?",
+  //   choices: [
+  //     { text: "Kebenaran", response: "Kebenaran bukan milik siapa pun. Tapi bisa membakar semua." },
+  //     { text: "Ketakutan", response: "Jadi kau menikmatinya? Atau kau hanya ingin dihukum?" },
+  //     { text: "Seseorang...", response: "Dia sudah lama hilang. Atau mungkin, belum pernah ada?" }
+  //   ]
+  // },
+  // {
+  //   question: "Apa yang paling kau takuti?",
+  //   choices: [
+  //     { text: "Kesendirian", response: "Kau tidak sendiri sekarang. Tapi apakah itu lebih baik?" },
+  //     { text: "Kegelapan", response: "Gelap hanya tempat bagi mereka yang ingin dilihat." },
+  //     { text: "Kebenaran", response: "Kau sudah memilih jalan yang tak bisa dibalik." }
+  //   ]
+  // },
+  // {
+  //   question: "Siapa dirimu sebenarnya?",
+  //   choices: [
+  //     { text: "Aku hanyalah korban", response: "Itu jawaban paling umum. Dan paling mudah untuk dibohongi." },
+  //     { text: "Aku pelaku", response: "Akhirnya ada yang mengaku... meski mungkin terlambat." },
+  //     { text: "Aku bukan siapa-siapa", response: "Dan itu yang paling ditakuti oleh mereka semua." }
+  //   ]
+  // },
+  // {
+  //   question: "Jika ini semua nyata, apa yang akan kau lakukan?",
+  //   choices: [
+  //     { text: "Kabur", response: "Terlambat. Kau sudah di sini." },
+  //     { text: "Melawan", response: "Apa pun yang kau lawan, dia sudah masuk terlalu dalam." },
+  //     { text: "Diam saja", response: "Keheningan adalah tanda menyerah." }
+  //   ]
+  // },
+  // // psychoQuestions
+  // {
+  //   question: "Apa yang biasanya kau sembunyikan dari orang lain?",
+  //   choices: [
+  //     { text: "Perasaanku", response: "Emosi itu... busuk jika disimpan terlalu lama." },
+  //     { text: "Masa lalu", response: "Ah, bagian yang paling gelap." },
+  //     { text: "Diriku sendiri", response: "Dan siapa yang kau perlihatkan hari ini?" }
+  //   ]
+  // },
+  // {
+  //   question: "Apa yang membuatmu merasa paling hidup?",
+  //   choices: [
+  //     { text: "Ketika aku dipuji", response: "Validasi eksternal... klasik." },
+  //     { text: "Saat aku sendirian", response: "Jadi kau menyukai sunyi?" },
+  //     { text: "Saat aku menyakiti seseorang", response: "Akhirnya... kejujuran." }
+  //   ]
+  // },
+  // {
+  //   question: "Apa yang kau pikirkan sekarang?",
+  //   choices: [
+  //     { text: "Aku ingin pergi", response: "Kau belum bisa." },
+  //     { text: "Ini cuma game", response: "Kau yakin?" },
+  //     { text: "Aku diawasi", response: "Bagus. Terus rasakan." }
+  //   ]
+  // },
+  // {
+  //   question: "Seberapa sering kau berbohong?",
+  //   choices: [
+  //     { text: "Kadang-kadang", response: "Kau terlalu sopan untuk mengaku." },
+  //     { text: "Sering", response: "Akhirnya seseorang jujur." },
+  //     { text: "Tidak pernah", response: "Itu... bohong, kan?" }
+  //   ]
+  // },
+  // {
+  //   question: "Apa yang terakhir kali kau sesali?",
+  //   choices: [
+  //     { text: "Keputusan hidup", response: "Sudah terlambat memperbaikinya." },
+  //     { text: "Ucapan terakhir pada seseorang", response: "Kau ingin mengulang?" },
+  //     { text: "Aku tak menyesal", response: "Dan itu membuatmu... berbahaya." }
+  //   ]
+  // },
+  // {
+  //   question: "Kenapa kau pikir kami memperhatikanmu sekarang?",
+  //   choices: [
+  //     { text: "Karena aku salah", response: "Kau lebih dari sekadar kesalahan." },
+  //     { text: "Karena aku berbeda", response: "Bukan berbeda. Tapi cacat." },
+  //     { text: "Aku tidak tahu", response: "Kebodohan itu pelindung yang indah." }
+  //   ]
+  // },
+  // {
+  //   question: "Apa yang kau takut orang lain tahu tentangmu?",
+  //   choices: [
+  //     { text: "Aku lemah", response: "Mereka sudah tahu." },
+  //     { text: "Aku punya sisi gelap", response: "Kau akan melihatnya segera." },
+  //     { text: "Aku... tidak nyata", response: "Kami juga mempertanyakannya." }
+  //   ]
+  // },
+  // {
+  //   question: "Apa yang kau harapkan dari survei ini?",
+  //   choices: [
+  //     { text: "Jawaban", response: "Pertanyaan lebih penting, bukan?" },
+  //     { text: "Bantuan", response: "Kau sudah melewati batas itu." },
+  //     { text: "Aku tak tahu", response: "Itu tak pernah jadi pilihanmu." }
+  //   ]
+  // },
+  // {
+  //   question: "Jika kau bisa menghapus satu ingatan, apa itu?",
+  //   choices: [
+  //     { text: "Wajah seseorang", response: "Dia akan tetap kembali..." },
+  //     { text: "Malam itu", response: "Kau pikir kau bisa kabur?" },
+  //     { text: "Tidak ingin tahu", response: "Dan itu kenapa kau di sini." }
+  //   ]
+  // },
+  // {
+  //   question: "Apa kau masih percaya ini hanya survei?",
+  //   choices: [
+  //     { text: "Ya", response: "Keyakinanmu... menyedihkan." },
+  //     { text: "Tidak", response: "Akhirnya... kau melihatnya." },
+  //     { text: "Aku... tidak yakin", response: "Dan itu celah yang kami butuhkan." }
+  //   ]
+  // },
+  // // glitchQuestions
+  //   {
+  //   question: "Apa kau takut pada hantu?",
+  //   choices: [
+  //     { text: "Tidak", response: "Kau yakin?", jumpscare: true },
+  //     { text: "Sedikit", response: "Itu cukup untuk memanggil mereka.", jumpscare: false },
+  //     { text: "Ya", response: "Terlambat untuk takut sekarang.", jumpscare: false }
+  //   ]
+  // },
+  // {
+  //   question: "Balik badan sekarang.",
+  //   choices: [
+  //     { text: "Tidak mau", response: "Kenapa? Takut ada yang di belakangmu?", jumpscare: true },
+  //     { text: "Kenapa?", response: "Karena sesuatu sudah menunggumu.", jumpscare: true },
+  //     { text: "Aku balik", response: "Terlambat. Dia sudah melihatmu duluan.", jumpscare: true }
+  //   ]
+  // },
+  // {
+  //   question: "Apakah kamu sendirian saat ini?",
+  //   choices: [
+  //     { text: "Ya", response: "Itu yang kau pikirkan.", jumpscare: false },
+  //     { text: "Tidak", response: "Lalu siapa di belakangmu?", jumpscare: true },
+  //     { text: "Aku tidak yakin", response: "Bagus. Tetap seperti itu.", jumpscare: false }
+  //   ]
+  // },
+  // {
+  //   question: "Kau dengar suara itu, kan?",
+  //   choices: [
+  //     { text: "Tidak", response: "Mungkin hanya belum cukup dekat.", jumpscare: false },
+  //     { text: "Ya", response: "Akhirnya. Tapi jangan berbalik.", jumpscare: true },
+  //     { text: "Apa itu?", response: "Sesuatu yang bukan untukmu.", jumpscare: true }
+  //   ]
+  // },
+  // {
+  //   question: "Apa kamu mempercayai penglihatanmu?",
+  //   choices: [
+  //     { text: "Ya", response: "Penglihatan bisa berbohong.", jumpscare: true },
+  //     { text: "Tidak", response: "Lalu kenapa masih menatap layar?", jumpscare: false },
+  //     { text: "Aku tidak tahu", response: "Kau akan tahu segera.", jumpscare: true }
+  //   ]
+  // },
+  // {
+  //   question: "Ada sesuatu di kamar ini. Kau merasakannya?",
+  //   choices: [
+  //     { text: "Tidak", response: "Tapi itu merasakanmu.", jumpscare: true },
+  //     { text: "Iya", response: "Kau tidak sendirian.", jumpscare: true },
+  //     { text: "Mungkin", response: "Itu cukup untuk membangunkannya.", jumpscare: true }
+  //   ]
+  // },
+  // {
+  //   question: "Kenapa kau masih di sini?",
+  //   choices: [
+  //     { text: "Aku penasaran", response: "Penasaran bisa mematikan.", jumpscare: true },
+  //     { text: "Aku tidak tahu", response: "Mereka tahu kau akan menjawab itu.", jumpscare: false },
+  //     { text: "Aku suka horor", response: "Bagus. Sekarang rasakan sendiri.", jumpscare: true }
+  //   ]
+  // },
+  // {
+  //   question: "Apa yang akan kau lakukan jika layar ini tiba-tiba hitam?",
+  //   choices: [
+  //     { text: "Teriak", response: "Tidak akan ada yang dengar.", jumpscare: true },
+  //     { text: "Diam", response: "Itu yang paling bijak.", jumpscare: false },
+  //     { text: "Tutup mata", response: "Tidak akan berguna.", jumpscare: true }
+  //   ]
+  // },
+  // {
+  //   question: "Lihat baik-baik. Ada yang berubah?",
+  //   choices: [
+  //     { text: "Ya", response: "Kau jeli. Tapi belum cukup cepat.", jumpscare: true },
+  //     { text: "Tidak", response: "Kau tidak memperhatikan.", jumpscare: false },
+  //     { text: "Mungkin", response: "Itu sudah cukup untuk memulai.", jumpscare: true }
+  //   ]
+  // },
+  // {
+  //   question: "Kau yakin masih sendiri?",
+  //   choices: [
+  //     { text: "Tidak", response: "Kau mulai mengerti.", jumpscare: true },
+  //     { text: "Ya", response: "Lalu siapa itu?", jumpscare: true },
+  //     { text: "...", response: "Heningmu mencurigakan.", jumpscare: true }
+  //   ]
+  // },
+  // // [TYPE: EMOTIONAL FINALE]
+{
+  question: "Kau masih di sini?",
+  type: "emotional",
+  choices: [
+    { text: "Ya", response: "Tentu. Kau ingin tahu akhir dari ini semua." },
+    { text: "Aku tidak bisa keluar", response: "Kadang... memang tak ada jalan keluar." },
+    { text: "Aku... tidak tahu", response: "Kau mencari sesuatu yang tak ingin kau temukan." }
+  ]
+},
+{
+  question: "Kenapa kau tidak mematikan gamenya saat jumpscare tadi?",
+  choices: [
+    { text: "Aku terbiasa", response: "Rasa takut itu... candu." },
+    { text: "Aku penasaran", response: "Kau haus jawaban. Tapi tidak semua pertanyaan butuh jawaban." },
+    { text: "Aku... mati rasa", response: "Ah... ini bukan tentang horor lagi, ya?" }
+  ]
+},
+{
+  question: "Siapa yang kau pikir menciptakan survei ini?",
+  choices: [
+    { text: "Orang iseng", response: "Kau pikir ini lelucon?" },
+    { text: "Seseorang yang ingin mengerti manusia", response: "Seseorang... atau sesuatu." },
+    { text: "Diriku sendiri", response: "Akhirnya kau sadar juga." }
+  ]
+},
+{
+  question: "Apa kau masih ingat alasan pertamamu mengklik ‘Play’ tadi?",
+  choices: [
+    { text: "Aku cuma coba-coba", response: "Dan lihat kau sekarang." },
+    { text: "Aku ingin tahu siapa diriku", response: "Dan sekarang... kami tahu juga." },
+    { text: "Aku lupa", response: "Memori itu selektif. Tapi trauma tidak." }
+  ]
+},
+{
+  question: "Jika ini semua adalah ujian mentalmu sendiri... apa kau lulus?",
+  choices: [
+    { text: "Tidak", response: "Maka kau akan mengulangnya. Lagi dan lagi." },
+    { text: "Mungkin", response: "Maka kami akan melihatmu kembali." },
+    { text: "Ya", response: "Bagus. Tapi... kami tidak percaya." }
+  ]
+}
+];
+
+let currentQuestion = 0;
+
+function showQuestion(index) {
+  if (index >= questions.length) {
+    typeWriter("Survei selesai. Tapi tidak semuanya akan kembali normal...", () => {
+      setTimeout(() => {
+        // Tampilkan video penutup laptop
+        videoContainer.style.display = 'block';
+        glitchVideo.src = "laptop-close.mp4"; // ← pastikan kamu punya file ini
+        glitchVideo.play();
+
+        setTimeout(() => {
+          // Setelah video selesai, pindah ke halaman kamar
+          window.location.href = "kamar.html"; // atau ganti ke gambar kamar gelap
+        }, 9100); // durasi video close laptop
+      }, 1000); // jeda sebelum video muncul
+    });
+    return;
+  }
+
+
+  const q = questions[index];
+  const isGlitch = q.choices.some(c => c.jumpscare);
+  const isEmotional = q.type === 'emotional'; // 💡 deteksi berdasarkan label
+
+  // 🎵 Ganti musik jika masuk ke bagian emosional
+  if (isEmotional && bgMusic.src.indexOf("ambient.mp3") === -1) {
+    bgMusic.pause();
+    bgMusic.src = "ambient.mp3";
+    bgMusic.loop = true;
+    bgMusic.volume = 0.6;
+    bgMusic.play().catch(() => {});
+  }
+
+  // ✍️ Gunakan writer sesuai jenis pertanyaan
+  const writer = isGlitch
+    ? typeWriterWithGlitch
+    : isEmotional
+    ? typeWriterSlow
+    : typeWriter;
+
+  writer(q.question, () => {
+    buttonContainer.innerHTML = q.choices.map((choice, i) => `
+      <button class="choice-btn" onclick="handleChoice(${index}, ${i})">${choice.text}</button>
+    `).join('');
+  });
+}
+
+
+function handleChoice(qIndex, choiceIndex) {
+  const choice = questions[qIndex].choices[choiceIndex];
+  buttonContainer.innerHTML = '';
+
+  if (choice.jumpscare) triggerJumpscare(); // efek jumpscare
+
+  const isGlitch = questions[qIndex].choices.some(c => c.jumpscare);
+  const writer = isGlitch ? typeWriterWithGlitch : typeWriter;
+
+  writer(choice.response, () => {
+    setTimeout(() => {
+      currentQuestion++;
+      showQuestion(currentQuestion);
+    }, 1000);
+  });
+}
+
+// TETAP: Fungsi typeWriter (punya kamu)
+function typeWriter(text, callback) {
+  textBox.textContent = '';
+  let i = 0;
+  const speed = 40;
+  function typing() {
+    if (i < text.length) {
+      textBox.textContent += text.charAt(i);
+      if (text.charAt(i) !== ' ' && i % 2 === 0) {
+        typeSfx.pause();
+        typeSfx.currentTime = 0;
+        typeSfx.play().catch(() => {});
+      }
+      i++;
+      setTimeout(typing, speed);
+    } else {
+      typeSfx.pause();
+      typeSfx.currentTime = 0;
+      if (callback) callback();
+    }
+  }
+  typing();
+}
+
+// BARU: Fungsi typeWriterWithGlitch (efek mengambang)
+function typeWriterWithGlitch(text, callback) {
+  textBox.innerHTML = '';
+  let i = 0;
+  const speed = 40;
+  function typing() {
+    if (i < text.length) {
+      const span = document.createElement('span');
+      span.textContent = text.charAt(i);
+      span.style.display = 'inline-block';
+      span.style.animation = 'float 0.4s ease infinite';
+      span.style.transform = `translateY(${Math.random() * 4 - 2}px)`;
+      textBox.appendChild(span);
+      i++;
+      setTimeout(typing, speed);
+    } else {
+      if (callback) callback();
+    }
+  }
+  typing();
+}
+  
+function typeWriterSlow(text, callback) {
+  textBox.textContent = '';
+  let i = 0;
+  const speed = 70; // lebih lambat
+  function typing() {
+    if (i < text.length) {
+      textBox.textContent += text.charAt(i);
+      if (text.charAt(i) !== ' ' && i % 2 === 0) {
+        typeSfx.pause();
+        typeSfx.currentTime = 0;
+        typeSfx.play().catch(() => {});
+      }
+      i++;
+      setTimeout(typing, speed);
+    } else {
+      typeSfx.pause();
+      typeSfx.currentTime = 0;
+      if (callback) callback();
+    }
+  }
+  typing();
+}
+
+
+// BARU: Fungsi triggerJumpscare (gambar + suara)
+function triggerJumpscare() {
+  const images = ['jumpscare.jpg', 'jumpscare2.jpg', 'jumpscare3.jpg'];
+  const sounds = ['jumpscare.mp3', 'loud.mp3', 'ambush.mp3'];
+
+  const randomIndex = Math.floor(Math.random() * images.length);
+
+  const img = document.createElement('img');
+  img.src = images[randomIndex];
+  img.style.position = 'fixed';
+  img.style.top = '0';
+  img.style.left = '0';
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.zIndex = '9999';
+  img.style.objectFit = 'cover';
+  document.body.appendChild(img);
+
+  const sfx = new Audio(sounds[randomIndex]);
+  sfx.play();
+
+  setTimeout(() => {
+    document.body.removeChild(img);
+  }, 1500);
+}
+
+
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  document.getElementById('startOverlay').style.display = 'none';
+
+  bgMusic.play().then(() => {
+    bgMusic.muted = false;
+    isMusicPlaying = true;
+  }).catch(() => {});
+
+  typeSfx.play().then(() => {
+    typeSfx.pause();
+    typeSfx.currentTime = 0;
+  }).catch(() => {});
+
+  typeWriter("Selamat datang...", () => {
+    setTimeout(() => {
+      typeWriter("Apa kamu yakin memulai survei ini?", () => {
+        buttonContainer.innerHTML = `
+          <button class="choice-btn" onclick="showQuestion(0)">Ya</button>
+          <button class="choice-btn" onclick="showGlitch()">Tidak</button>
+        `;
+      });
+    }, 1000);
+  });
+});
+
+function showGlitch() {
+  buttonContainer.innerHTML = "";
+  textBox.textContent = "";
+  videoContainer.style.display = 'block';
+  glitchVideo.play();
+  setTimeout(() => {
+    videoContainer.style.display = 'none';
+    typeWriter("Ending 1: Nevermind", () => {
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 2000);
+    });
+  }, 5000);
+}
+
+
+</script>
+</body>
+</html>

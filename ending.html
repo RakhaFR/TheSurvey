@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Ending Gallery</title>
+  <style>
+    body {
+      background: black;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .ending {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 200px;
+    }
+
+    .ending-box {
+      position: relative;
+      width: 100%;
+      height: 120px;
+      overflow: hidden;
+      border: 2px solid white;
+      border-radius: 10px;
+      background: #111;
+    }
+
+    .ending-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .ending-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      font-weight: bold;
+      color: white;
+      background: rgba(0, 0, 0, 0.6);
+      font-family: monospace;
+      pointer-events: none;
+    }
+
+    .caption {
+      margin-top: 8px;
+      color: white;
+      font-size: 0.95em;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* Responsif untuk HP */
+    @media (max-width: 600px) {
+      .ending {
+        width: 200px;
+      }
+
+      .caption {
+        font-size: 1em;
+        margin-top: 6px;
+      }
+    }
+
+    .back-btn {
+      margin-top: 40px;
+      background: none;
+      color: white;
+      border: 1px solid white;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    .back-btn:hover {
+      background: white;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Ending yang Telah Kamu Temukan</h1>
+
+  <div class="gallery" id="endingGallery">
+    <!-- Ending items will be injected here -->
+  </div>
+
+  <button class="back-btn" onclick="window.location.href='index.html'">Kembali ke Lobby</button>
+
+  <script>
+    const allEndings = [
+      { id: "Ending_Stay", label: "Tetap di Kamar", img: "kamar_gelap.jpg" },
+      { id: "Ending_Explore", label: "Eksplorasi", img: "dapur_gelap.jpeg" }
+      // Tambahkan ending lain di sini
+    ];
+    
+
+    const unlockedEndings = JSON.parse(localStorage.getItem("unlockedEndings") || "[]");
+    const gallery = document.getElementById("endingGallery");
+
+    allEndings.forEach(ending => {
+      const endingWrapper = document.createElement("div");
+      endingWrapper.className = "ending";
+
+      const box = document.createElement("div");
+      box.className = "ending-box";
+
+      const img = document.createElement("img");
+      const isUnlocked = unlockedEndings.includes(ending.id);
+
+      img.src = isUnlocked ? ending.img : "tv_rusak.jpeg";
+      box.appendChild(img);
+
+      if (!isUnlocked) {
+        const overlay = document.createElement("div");
+        overlay.className = "ending-label";
+        overlay.textContent = "???";
+        box.appendChild(overlay);
+      }
+
+      const caption = document.createElement("div");
+      caption.className = "caption";
+      caption.textContent = isUnlocked ? ending.label : "???";
+
+      endingWrapper.appendChild(box);
+      endingWrapper.appendChild(caption);
+      gallery.appendChild(endingWrapper);
+    });
+  </script>
+</body>
+</html>

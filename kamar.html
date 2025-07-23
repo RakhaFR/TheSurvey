@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Kamar Gelap</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    #fade {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: black;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 2s;
+    }
+
+    #darkRoom {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 1;
+      display: none;
+    }
+
+    #dialogBox {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 30px;
+      font-size: 1.2em;
+      z-index: 10;
+      display: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 30px;
+    }
+
+    #dialogText {
+      flex: 1;
+      min-height: 40px;
+    }
+
+    #nextBtn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5em;
+      cursor: pointer;
+      padding: 5px 15px;
+      align-self: flex-end;
+    }
+
+    .choice-btn {
+      background: #111;
+      border: 1px solid white;
+      color: white;
+      padding: 12px 24px;
+      margin: 10px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    #choiceOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 20;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    #choiceOverlay p {
+      font-size: 1.4em;
+      margin-bottom: 20px;
+    }
+    #shadowFigure {
+      position: fixed;
+      top: 55%;
+      left: 87%;
+      width: 80px;
+      height: 160px;
+      object-fit: contain;
+      z-index: 5;
+      display: none;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Elemen Visual -->
+<img id="shadowFigure" src="jumpscare4.png">
+  <div id="fade"></div>
+  <img id="darkRoom" src="kamar_gelap.jpg" alt="Kamar Gelap">
+
+  <!-- Dialog Box -->
+  <div id="dialogBox">
+    <p id="dialogText"></p>
+    <button id="nextBtn" style="display:none">&#9654;</button>
+  </div>
+
+  <!-- Pilihan Eksplorasi -->
+  <div id="choiceOverlay" style="display: none;">
+    <p>Mau apa sekarang?</p>
+    <button class="choice-btn" onclick="stayInRoom()">Tetap di kamar</button>
+    <button class="choice-btn" onclick="startExploration()">Jelajahi rumah</button>
+  </div>
+
+  <!-- Audio -->
+  <audio id="typeSfx" src="video-game-text.mp3" preload="auto"></audio>
+
+  <script>
+    const dialogLines = [
+      "Suasana menjadi senyap. Laptop-mu menutup sendiri.",
+      "Kau membuka mata... dan sekarang kau ada di kamar gelap.",
+      "Langkahmu pelan, jantungmu tetap berdetak kencang.",
+      '"Apa barusan yang terjadi..."',
+      '"Aku merasa pusing..."',
+      '"Aku butuh air di dapur.."',
+    ];
+
+    const stayInRoomLines = [
+      "Aku tidak yakin untuk menjelajah sekarang...",
+      "Mungkin... lebih baik aku tetap di sini.",
+      "Tapi... kenapa suasananya jadi semakin dingin?",
+      "Aku mulai merasa... dia sedang mengamatiku dari balik lemari...",
+      "Aku tidak bisa bergerak...",
+      "Aku hanya bisa diam...",
+      "Dan kemudian... semuanya gelap."
+    ];
+
+    const typeSfx = document.getElementById('typeSfx');
+    let dialogIndex = 0;
+
+    window.onload = triggerEndingScene;
+
+    function triggerEndingScene() {
+      setTimeout(() => {
+        document.getElementById('fade').style.opacity = 1;
+        setTimeout(() => {
+          document.getElementById('fade').style.display = 'none';
+          document.getElementById('darkRoom').style.display = 'block';
+          document.getElementById('dialogBox').style.display = 'flex';
+          showDialogSequence();
+        }, 2000);
+      }, 500);
+    }
+
+    function typeWriter(text, callback) {
+      const textEl = document.getElementById('dialogText');
+      textEl.textContent = '';
+      let i = 0;
+      const speed = 40;
+
+      function typing() {
+        if (i < text.length) {
+          textEl.textContent += text.charAt(i);
+          if (text.charAt(i) !== ' ' && i % 2 === 0) {
+            typeSfx.pause();
+            typeSfx.currentTime = 0;
+            typeSfx.play().catch(() => {});
+          }
+          i++;
+          setTimeout(typing, speed);
+        } else {
+          typeSfx.pause();
+          typeSfx.currentTime = 0;
+          document.getElementById('nextBtn').style.display = 'inline';
+          if (callback) callback();
+        }
+      }
+
+      typeSfx.pause();
+      typeSfx.currentTime = 0;
+      document.getElementById('nextBtn').style.display = 'none';
+      typing();
+    }
+
+    function showDialogSequence() {
+      const text = dialogLines[dialogIndex];
+      typeWriter(text, () => {
+        document.getElementById('nextBtn').onclick = () => {
+          dialogIndex++;
+          if (dialogIndex < dialogLines.length) {
+            showDialogSequence();
+          } else {
+            showPathOptions();
+          }
+        };
+      });
+    }
+
+    function showPathOptions() {
+      document.getElementById('dialogBox').style.display = 'none';
+      document.getElementById('choiceOverlay').style.display = 'flex';
+    }
+
+    function stayInRoom() {
+      document.getElementById('choiceOverlay').style.display = 'none';
+      document.getElementById('dialogBox').style.display = 'flex';
+
+      let stayIndex = 0;
+
+      function nextStayLine() {
+        const text = stayInRoomLines[stayIndex];
+        typeWriter(text, () => {
+          document.getElementById('nextBtn').onclick = () => {
+            stayIndex++;
+            if (stayIndex < stayInRoomLines.length) {
+              nextStayLine();
+            } else {
+              playShadowEffect(() => {
+                fadeTo(() => {
+                  localStorage.setItem("unlockedEndings", JSON.stringify(["Ending_Stay"]));
+                  window.location.href = "ending.html";
+                });
+              });
+            }
+          };
+        });
+      }
+
+      nextStayLine();
+    }
+
+    function playShadowEffect(callback) {
+      const shadow = document.getElementById('shadowFigure');
+      let totalTime = 0;
+
+      function flash() {
+        const showTime = Math.random() * 0.5 + 0.5;
+        shadow.style.display = 'block';
+
+        setTimeout(() => {
+          shadow.style.display = 'none';
+
+          const waitTime = Math.random() * 0.5 + 0.5;
+          totalTime += showTime + waitTime;
+
+          if (totalTime < 10) {
+            setTimeout(flash, waitTime * 1000);
+          } else {
+            if (callback) callback();
+          }
+        }, showTime * 1000);
+      }
+
+      flash();
+    }
+
+    function startExploration() {
+      fadeTo(() => {
+        window.location.href = "explore.html";
+      });
+    }
+
+    function fadeTo(callback) {
+      const fade = document.getElementById('fade');
+      fade.style.display = 'block';
+      setTimeout(() => {
+        fade.style.opacity = 1;
+        setTimeout(callback, 1500);
+      }, 50);
+    }
+  </script>
+</body>
+</html>
